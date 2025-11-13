@@ -45,6 +45,8 @@ for i in ~/.ssh/*.pub; do
 done
 
 echo "
+app = '$appname'
+
 [[services]]
 internal_port = 22
 protocol = \"tcp\"
@@ -53,28 +55,27 @@ protocol = \"tcp\"
 port = 10022
 
 [[mounts]]
-source = \"data\"
-destination = \"/data\"
+source = 'data'
+destination = '/data'
 
 [env]
 HOME_SSH_AUTHORIZED_KEYS = '''
 $AUTHORIZED_KEYS
 '''
-">import.toml
 
-fly init $appname --import import.toml --org $orgname --overwrite
+[[vm]]
+  memory = '8gb'
+  cpu_kind = 'shared'
+  cpus = 4
+">fly.toml
 
-rm import.toml
+fly apps create $appname --org $orgname
 
-REGION=`fly regions list --json | awk '/"Code"/ { sub(/\ *"Code\": \"/ , "")
-sub(/",/,"")
-print }'`
+fly volumes create data $disksize -y
 
-fly volumes create data --region $REGION $disksize
-
-fly deploy --build-arg USER=$(whoami) --build-arg EXTRA_PKGS="$extrapackages" $usedocker 
+fly deploy --build-arg USER=$(whoami) --build-arg EXTRA_PKGS="$extrapackages" $usedocker --remote-only --depot=false
 
 echo
 echo
-echo "To use in VS Code, tell the remote-ssh package to connect to $(whoami)@$(fly info --host):10022"
+echo "To use in VS Code, tell the remote-ssh package to connect to $(whoami)@$(fly ips list -j | jq -r '.[] | select(.Type=="v4") | .Address'):10022"
 

@@ -1,4 +1,4 @@
-FROM ubuntu:bionic
+FROM ubuntu:22.04
 
 ARG EXTRA_PKGS
 
@@ -19,24 +19,13 @@ RUN echo "%${USER} ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 
 ENV USER_ARG=${USER}
 
-ARG USE_DOCKER
-RUN if [ -n "${USE_DOCKER}" ] ; then \
-    apt-get install --no-install-recommends -y iptables libdevmapper1.02.1 \
-    && curl https://download.docker.com/linux/ubuntu/dists/bionic/pool/stable/amd64/containerd.io_1.3.7-1_amd64.deb --output containerd.deb \
-    && dpkg -i containerd.deb \
-    && rm containerd.deb \
-    && curl https://download.docker.com/linux/ubuntu/dists/bionic/pool/stable/amd64/docker-ce-cli_19.03.12~3-0~ubuntu-bionic_amd64.deb --output docker-cli.deb \
-    && dpkg -i docker-cli.deb \
-    && rm docker-cli.deb \
-    && curl https://download.docker.com/linux/ubuntu/dists/bionic/pool/stable/amd64/docker-ce_19.03.13~3-0~ubuntu-bionic_amd64.deb --output docker.deb \
-    && dpkg -i docker.deb \
-    && rm docker.deb \
-    && usermod -aG docker ${USER} \
-    && curl -L "https://github.com/docker/compose/releases/download/1.27.4/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose \
-    && chmod +x usr/local/bin/docker-compose \
-    ; fi
-
-ENV USE_DOCKER=${USE_DOCKER}
+RUN apt-get install --no-install-recommends -y iptables libdevmapper1.02.1 apt-transport-https ca-certificates curl software-properties-common \
+    && apt install apt-transport-https ca-certificates curl software-properties-common \
+    && curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null \
+    && apt-get update \
+    && apt-get install -y containerd.io docker-ce docker-ce-cli \
+    && usermod -aG docker ${USER}
 
 # Setup your SSH server daemon, copy pre-generated keys
 RUN rm -rf /etc/ssh/ssh_host_*_key*
