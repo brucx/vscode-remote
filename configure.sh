@@ -49,7 +49,10 @@ app = '$appname'
 
 [[services]]
 internal_port = 22
-protocol = \"tcp\"
+protocol = 'tcp'
+auto_stop_machines = 'stop'
+auto_start_machines = true
+min_machines_running = 0
 
 [[services.ports]]
 port = 10022
@@ -67,6 +70,7 @@ $AUTHORIZED_KEYS
   memory = '8gb'
   cpu_kind = 'shared'
   cpus = 4
+
 ">fly.toml
 
 fly apps create $appname --org $orgname
