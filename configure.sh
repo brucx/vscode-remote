@@ -5,7 +5,7 @@ set -e
 read -p "Enter desired app name or press return to have a name generated:" appname
 
 if [ -z "$appname" ]; then
-    appname="--generatename"
+    appname="app-$(date +%s)"
 fi
 
 read -p "Enter desired organization name or press return to use your personal org:" orgname
@@ -22,16 +22,16 @@ else
     disksize="--size ${disksizenum}"
 fi
 
-read -p "Use Docker on remote machine (y/n):" usedockerresponse
+# read -p "Use Docker on remote machine (y/n):" usedockerresponse
 
-case $usedockerresponse in 
-[Yy])
-    usedocker="--build-arg USE_DOCKER=y"
-;;
-*)
-    usedocker=""
-;;
-esac
+# case $usedockerresponse in 
+# [Yy])
+#     usedocker="--build-arg USE_DOCKER=y"
+# ;;
+# *)
+#     usedocker=""
+# ;;
+# esac
 
 echo
 
@@ -41,7 +41,7 @@ read -p "Any extra packages:" extrapackages
 AUTHORIZED_KEYS=""
 
 for i in ~/.ssh/*.pub; do
-    AUTHORIZED_KEYS="$AUTHORIZED_KEYS$(cat $i)\n"
+    AUTHORIZED_KEYS="$AUTHORIZED_KEYS$(cat $i)"$'\n'
 done
 
 echo "
@@ -73,7 +73,7 @@ fly apps create $appname --org $orgname
 
 fly volumes create data $disksize -y
 
-fly deploy --build-arg USER=$(whoami) --build-arg EXTRA_PKGS="$extrapackages" $usedocker --remote-only --depot=false
+fly deploy --build-arg USER=$(whoami) --build-arg EXTRA_PKGS="$extrapackages" --remote-only --depot=false
 
 echo
 echo
