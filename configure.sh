@@ -67,9 +67,9 @@ $AUTHORIZED_KEYS
 '''
 
 [[vm]]
-  memory = '8gb'
+  memory = '16gb'
   cpu_kind = 'shared'
-  cpus = 4
+  cpus = 8
 
 ">fly.toml
 
